@@ -25,6 +25,9 @@ get_mexico_regional_cases <- function() {
     #Quitar acentos en los nombres de los estados
     dplyr::mutate(Region=stringi::stri_trans_general(str = Region, id = "Latin-ASCII")) %>%
     
+    #Se les olvido lo de CDMX
+    dplyr::mutate(Region = ifelse(Region == "DISTRITO FEDERAL" , "CIUDAD DE MEXICO", Region)) %>%
+  
     # Usamos Date_Confirmed porque es la que requiere EpiNow
     dplyr::mutate(date=as.Date(Date_Confirmed, format = "%m/%d/%Y")) %>%
     
@@ -33,12 +36,19 @@ get_mexico_regional_cases <- function() {
     dplyr::group_by(Region, import_status, date) %>%
     
     ## Sumar los casos individuales para obtener los nuevos casos del día por región
-    dplyr::summarize(cases = n()) %>% 
+    ## Si hubiera recuperados del dia, aqui hay que quitarlos
+    dplyr::summarize(day_cases = n()) %>% 
     
     #Limpieza final
-    filter(!is.na(Region) & Region != "Region" )
-
+    filter(!is.na(Region) & Region != "Region" ) %>%
+  
+    #Generar serie acumulada
+    dplyr::select(date, Region, import_status, day_cases) %>%
+    dplyr::group_by(Region, import_status) %>%
+    dplyr::mutate(cases = cumsum(day_cases))
+  
   return(cases)
 }
+
 
 
