@@ -15,7 +15,9 @@
 #
 
 get_mexico_regional_cases <- function() {
-  path <- "https://raw.githubusercontent.com/marianarf/covid19_mexico_analysis/master/output_data/covid_mex_20200409.csv"
+  #path <- "https://raw.githubusercontent.com/marianarf/covid19_mexico_analysis/master/output_data/covid_mex_20200409.csv"
+  
+  path <- "https://raw.githubusercontent.com/marianarf/covid19_mexico_analysis/master/output_data/covid_mex_20200410.csv"
   
   ## Set up cache
   ch <- memoise::cache_filesystem(".cache")
@@ -42,13 +44,12 @@ get_mexico_regional_cases <- function() {
     #Limpieza final
     filter(!is.na(Region) & Region != "Region" ) %>%
   
-    #Generar serie acumulada
     dplyr::select(date, Region, import_status, day_cases) %>%
     dplyr::group_by(Region, import_status) %>%
-    dplyr::mutate(cases = cumsum(day_cases))
+    dplyr::rename(cases = day_cases)
+    #dplyr::mutate(cases = cumsum(day_cases))
   
   return(cases)
 }
-
 
 
